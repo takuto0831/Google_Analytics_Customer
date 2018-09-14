@@ -1,0 +1,437 @@
+---
+title: "Google Analytics Customer: EDA"
+author: "kotsubo takuto"
+output: 
+    html_document:
+      md_extensions: -ascii_identifiers
+      toc: true
+      toc_depth: 3
+      code_folding: hide
+---
+    
+# About the competition
+
+## Overview
+
+## Data description
+
+# Setting{.tabset .tabset-fade .tabset-pills}
+
+## knitr option
+
+```{r reset, include=FALSE}
+# 初期化
+rm(list = ls())
+```
+
+```{r set up, message=FALSE}
+# set directory
+setwd("~/Desktop/Google_Analytics_Kaggle/") 
+# max.print 
+options(max.print="200", digits=5)
+# Global options
+library(knitr)
+opts_chunk$set(echo=TRUE,
+               # cache = FALSE,
+	             prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+## Library package
+
+```{r package, message=FALSE}
+library(tidyverse)
+library(readr) # for csv
+library(summarytools) # summary easily for EDA
+library(GGally) # ggpairs
+library(skimr) 
+library(janitor)
+```
+
+## Load funciton
+
+```{r}
+source('~/Desktop/Google_Analytics_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Google_Analytics_Kaggle/script/makedummies.R') # for preprocessing
+```
+
+## Import csv
+
+- Import raw data from `input/raw/{tarin|test}.csv`
+- Define missing values: na = c("XNA","NA","","NaN","?",...)
+- Convert charcter's columns into factor's columns 
+- Delete duplicate column names and change them to lower case
+- Add keyword to columns names for each data except for key columns: (_app,_bureau,_pre,_pos,_ins,_cre) 
+
+```{r cache=TRUE}
+# 訓練データ, テストデータ
+train <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/train.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names()  # change small letters
+
+test <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/test.csv",na = c("XNA","NA","","NaN","?")) %>% 
+  mutate_if(is.character, funs(factor(.))) %>% 
+  clean_names()  # change small letters
+```
+
+## Export csv
+
+- Export modified data to `csv_imp0/~.csv`
+- not execute
+
+```{r eval=FALSE}
+
+
+```
+
+## Extract col names
+
+- not execute
+
+```{r eval=FALSE}
+tmp <- (app_train %>% head(0)) %>% 
+  cbind(bureau %>% head(0)) %>% 
+  cbind(bureau_balance %>% head(0)) %>% 
+  cbind(pos_cash %>% head(0)) %>% 
+  cbind(credit_card %>% head(0)) %>% 
+  cbind(previous_app %>% head(0)) %>%
+  cbind(install_pay %>% head(0)) %>% 
+  colnames() %>% data.frame(new = .) 
+write_csv(tmp,"~/Desktop/Home_Credit_Kaggle/data/new_column_names.csv")
+# tmp %>% filter(str_detect(new,"id"))
+```
+
+# Explatory Data Analysis
+
+- Check the data to confirm outliers and missing data 
+- Confirm relationship with target variables
+- Apply glimpse, skimr and dfsummary to the all data
+- Check the data to confirm the uniqueness 
+- Confirm that "_add" and "_imp" are not included in the data
+- Make a simple combine data 
+
+## Check missing values and outiers valules {.tabset .tabset-fade .tabset-pills}
+
+### app_train
+
+```{r cache=TRUE}
+CheckMissingValue(app_train)
+```
+
+### app_test
+
+```{r cache=TRUE}
+CheckMissingValue(app_test)
+```
+
+### bureau
+
+```{r cache=TRUE}
+CheckMissingValue(bureau)
+```
+
+### bureau_balance
+
+```{r cache=TRUE}
+CheckMissingValue(bureau_balance)
+```
+
+### previous_app
+
+```{r cache=TRUE}
+CheckMissingValue(previous_app)
+```
+
+### install_pay
+
+```{r cache=TRUE}
+CheckMissingValue(install_pay)
+```
+
+### pos_cash
+
+```{r cache=TRUE}
+CheckMissingValue(pos_cash)
+```
+
+### credit_card
+
+```{r cache=TRUE}
+CheckMissingValue(credit_card)
+```
+
+## Relationship with target values
+
+```{r}
+app_train %>% 
+  tabyl(name_contract_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(code_gender_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(flag_own_car_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(flag_own_realty_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_type_suite_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_income_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_education_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_family_status_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(name_housing_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(occupation_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(weekday_appr_process_start_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(organization_type_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(fondkapremont_mode_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(housetype_mode_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(wallsmaterial_mode_app,target_app) %>% 
+  adorn_percentages("row")
+app_train %>% 
+  tabyl(emergencystate_mode_app,target_app) %>% 
+  adorn_percentages("row")
+```
+
+## glimpse package{.tabset .tabset-fade .tabset-pills}
+
+- check column type each data frame
+
+### app_train
+
+```{r cache=TRUE}
+glimpse(app_train)
+```
+
+### app_test
+
+```{r cache=TRUE}
+glimpse(app_test)
+```
+
+### bureau
+
+```{r cache=TRUE}
+glimpse(bureau)
+```
+
+### bureau_balance
+
+```{r cache=TRUE}
+glimpse(bureau_balance)
+```
+
+### previous_app
+
+```{r cache=TRUE}
+glimpse(previous_app)
+```
+
+### install_pay
+
+```{r cache=TRUE}
+glimpse(install_pay)
+```
+
+### pos_cash
+
+```{r cache=TRUE}
+glimpse(pos_cash)
+```
+
+### credit_card
+
+```{r cache=TRUE}
+glimpse(credit_card)
+```
+
+## skim package{.tabset .tabset-fade .tabset-pills}
+
+- overview of a data frame
+
+### app_train
+
+```{r cache=TRUE}
+skimr::skim_to_wide(app_train) %>% kable()
+```
+
+### app_test
+
+```{r cache=TRUE}
+skimr::skim_to_wide(app_test) %>% kable()
+```
+
+### bureau
+
+```{r cache=TRUE}
+skimr::skim_to_wide(bureau) %>% kable()
+```
+
+### bureau_balance
+
+```{r cache=TRUE}
+skimr::skim_to_wide(bureau_balance) %>% kable()
+```
+
+### previous_app
+
+```{r cache=TRUE}
+skimr::skim_to_wide(previous_app) %>% kable()
+```
+
+### install_pay
+
+```{r cache=TRUE}
+skimr::skim_to_wide(install_pay) %>% kable()
+```
+
+### pos_cash
+
+```{r cache=TRUE}
+skimr::skim_to_wide(pos_cash) %>% kable()
+```
+
+### credit_card
+
+```{r cache=TRUE}
+skimr::skim_to_wide(credit_card) %>% kable()
+```
+
+## summarytools package{.tabset .tabset-fade .tabset-pills}
+
+- Summary of data frame (split factor value and numeric value)
+
+### app_train
+
+```{r cache=TRUE}
+dfSummarySplit(app_train)
+```
+
+### app_test
+
+```{r cache=TRUE}
+dfSummarySplit(app_test)
+```
+
+### bureau
+
+```{r cache=TRUE}
+dfSummarySplit(bureau)
+```
+
+### bureau_balance
+
+```{r cache=TRUE}
+dfSummarySplit(bureau_balance)
+```
+
+### previous_app
+
+```{r cache=TRUE}
+dfSummarySplit(previous_app)
+```
+
+### install_pay
+
+```{r cache=TRUE}
+dfSummarySplit(install_pay)
+```
+
+### pos_cash
+
+```{r cache=TRUE}
+dfSummarySplit(pos_cash)
+```
+
+### credit_card
+
+```{r cache=TRUE}
+dfSummarySplit(credit_card)
+```
+
+## Confirm that "_add" and "_imp" are not included in the data
+
+```{r}
+patterns <- c("_add","_imp")
+CheckColumnsNotInclude(app_train,patterns)
+CheckColumnsNotInclude(app_test,patterns)
+CheckColumnsNotInclude(bureau,patterns)
+CheckColumnsNotInclude(bureau_balance,patterns)
+CheckColumnsNotInclude(credit_card,patterns)
+CheckColumnsNotInclude(install_pay,patterns)
+CheckColumnsNotInclude(pos_cash,patterns)
+CheckColumnsNotInclude(previous_app,patterns)
+```
+
+## Make a simple combine data{.tabset .tabset-fade .tabset-pills}
+
+- Export modified data to `csv_imp0/all_{train|test}.csv`
+
+### Make a combine data
+
+```{r cache=TRUE}
+bureau_sum <- makedummies(bureau_balance,basal_level = TRUE) %>% # make dummy
+  SummarizeFunc(group = "sk_id_bureau") %>%                  # summarize
+  left_join(bureau,.,by = "sk_id_bureau") %>% 
+  makedummies(basal_level = TRUE) %>% # make dummy
+  select(-sk_id_bureau) %>%                       # not need
+  SummarizeFunc(group = "sk_id_curr")             # summarize
+credit_card_sum <- makedummies(credit_card,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr") 
+install_pay_sum <- makedummies(install_pay,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr")
+pos_cash_sum <- makedummies(pos_cash,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr")
+previous_app_sum <- makedummies(previous_app,basal_level = TRUE) %>% # make dummy
+  select(-sk_id_prev) %>% 
+  SummarizeFunc(group = "sk_id_curr")
+
+all_data_train <- (app_train %>% mutate_if(is.factor, funs(as.numeric))) %>% # factor -> numeric
+  left_join(bureau_sum,by="sk_id_curr") %>% 
+  left_join(credit_card_sum,by = "sk_id_curr") %>% 
+  left_join(install_pay_sum,by = "sk_id_curr") %>% 
+  left_join(pos_cash_sum,by = "sk_id_curr") %>% 
+  left_join(previous_app_sum,by = "sk_id_curr")
+all_data_test <- (app_test %>% mutate_if(is.factor, funs(as.numeric))) %>% # factor -> numeric
+  left_join(bureau_sum,by="sk_id_curr") %>% 
+  left_join(credit_card_sum,by = "sk_id_curr") %>% 
+  left_join(install_pay_sum,by = "sk_id_curr") %>% 
+  left_join(pos_cash_sum,by = "sk_id_curr") %>% 
+  left_join(previous_app_sum,by = "sk_id_curr")
+```
+
+### Export
+
+- not execute
+
+```{r eval=FALSE}
+write_csv(all_data_train,"~/Desktop/Home_Credit_Kaggle/input/csv_imp0/all_data_train.csv")
+write_csv(all_data_test,"~/Desktop/Home_Credit_Kaggle/input/csv_imp0/all_data_test.csv")
+```
