@@ -1,3 +1,3 @@
-# Google_Analytics_Customer
+# Google_Analytics_Customer_Kaggle
 
 - kaggle competition
