@@ -64,18 +64,14 @@ source('~/Desktop/Google_Analytics_Kaggle/script/makedummies.R') # for preproces
 - Import raw data from `input/raw/{tarin|test}.csv`
 - Define missing values: na = c("XNA","NA","","NaN","?",...)
 - Convert charcter's columns into factor's columns 
-- Delete duplicate column names and change them to lower case
-- Add keyword to columns names for each data except for key columns: (_app,_bureau,_pre,_pos,_ins,_cre) 
 
 ```{r cache=TRUE}
 # 訓練データ, テストデータ
 train <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/train.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.))) %>% 
-  clean_names()  # change small letters
+  mutate_if(is.character, funs(factor(.))) 
 
 test <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/test.csv",na = c("XNA","NA","","NaN","?")) %>% 
-  mutate_if(is.character, funs(factor(.))) %>% 
-  clean_names()  # change small letters
+  mutate_if(is.character, funs(factor(.))) 
 ```
 
 ## Export csv
