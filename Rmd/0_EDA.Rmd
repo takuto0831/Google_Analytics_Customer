@@ -106,8 +106,9 @@ write.csv2(tmp,"~/Desktop/Google_Analytics_Kaggle/data/new_column_names.csv",row
 
 - Apply glimpse, skimr and dfsummary to the all data
 - Search target values
-- Check unique values
-- Confirm relationship with target variables
+- Check three id values
+- Check time and date
+- Confirm relationship with target variables -> 2_EDA.Rmd 
 
 ## Apply glimpse, skimr and dfsummary to the all data{.tabset .tabset-fade .tabset-pills}
 
@@ -149,20 +150,87 @@ tmp <- train_flat %>%
             by = "col")
 ```
 
-## Check unique values
+```{r}
+train_flat %>% 
+  mutate(transactionRevenue = 
+           transactionRevenue %>% 
+           as.numeric()
+           ) %>% 
+  summarise(a = min(transactionRevenue, na.rm = TRUE) / 10^6,
+            b = max(transactionRevenue, na.rm = TRUE) / 10^6,
+            c = mean(transactionRevenue, na.rm = TRUE) / 10^6)
+```
+
+- 80 / 20 rule -> result: 72%
 
 ```{r}
-train_raw %>% 
-  distinct(fullVisitorId, .keep_all = FALSE) %>% 
-  NROW
-test_raw %>% 
-  distinct(fullVisitorId) %>% 
-  NROW
-train_raw %>% 
-  distinct(sessionId, .keep_all = FALSE) %>% 
-  NROW
+train_flat %>% 
+  select(transactionRevenue) %>% 
+  mutate(transactionRevenue = transactionRevenue %>% as.numeric()) %>% 
+  na.omit() %>% 
+  arrange(desc(transactionRevenue))-> tmp 
 
-train_raw %>% 
-  tabyl(sessionId) %>% 
-  arrange(desc(n))
+(tmp[1:2300,1] %>% sum()) / (tmp %>% sum)
 ```
+
+## Check three id values
+
+- `fullVisitorId`
+- `sessionId`
+- `visitId`
+
+- uniqueな値を確認する. 
+
+```{r}
+# train
+train_flat %>% distinct(fullVisitorId) %>% NROW
+train_flat %>% distinct(sessionId) %>% NROW
+train_flat %>% distinct(visitId) %>% NROW
+# test
+test_flat %>% distinct(fullVisitorId) %>% NROW
+test_flat %>% distinct(sessionId) %>% NROW
+test_flat %>% distinct(visitId) %>% NROW
+```
+
+- 2つのIDを組み合わせると, `sessionId` と同じ結果になる
+- `visitId` 必要なのか?
+
+```{r}
+train_flat %>% distinct(fullVisitorId, visitId) %>% NROW
+test_flat %>% distinct(fullVisitorId, visitId) %>% NROW
+```
+
+- train, testに同一のuserは出現していないか
+- user id: 全1331409種 (unique value: 1323730)
+- 同一のuserが存在する. 
+
+```{r}
+train_flat %>% 
+  distinct(fullVisitorId) %>% 
+  rbind(test_flat %>% distinct(fullVisitorId)) -> tmp
+tmp %>% distinct(fullVisitorId) %>% NROW
+```
+
+- trainの購入履歴あり + test: 627,238 (unique: 626702)
+- 536人は購入かつ再度訪問している.
+
+```{r}
+train_flat %>% 
+  filter(!is.na(transactionRevenue)) %>% 
+  distinct(fullVisitorId) %>% 
+  rbind(test_flat %>% distinct(fullVisitorId)) -> tmp
+tmp %>% distinct(fullVisitorId) %>% NROW
+```
+
+## Check time and date
+
+- 観測期間の確認
+- train: 1年間, test: 8ヶ月
+
+```{r}
+train_flat %>% 
+  summarise(from = min(date), to = max(date))
+test_flat %>% 
+  summarise(from = min(date), to = max(date))
+```
+
