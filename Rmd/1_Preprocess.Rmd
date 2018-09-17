@@ -117,7 +117,7 @@ test_flat <-
 ```{r}
 train_flat <- 
   train_flat %>% 
-  mutate(transactionRevenue = transactionRevenue %>% is.numeric()) %>% 
+  mutate(transactionRevenue = transactionRevenue %>% as.numeric()) %>% 
   mutate(transactionRevenue = ifelse(is.na(transactionRevenue),0,transactionRevenue)) 
 ```
 
