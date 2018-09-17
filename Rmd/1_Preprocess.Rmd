@@ -117,6 +117,7 @@ test_flat <-
 ```{r}
 train_flat <- 
   train_flat %>% 
+  mutate(transactionRevenue = transactionRevenue %>% is.numeric()) %>% 
   mutate(transactionRevenue = ifelse(is.na(transactionRevenue),0,transactionRevenue)) 
 ```
 
@@ -127,6 +128,8 @@ train_flat <-
 - simple imputation data
 
 ```{r}
+train_flat %>% 
+  
 write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.scv")
 write_csv(test_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.scv")
 ```
