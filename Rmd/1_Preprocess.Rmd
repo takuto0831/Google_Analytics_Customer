@@ -93,9 +93,13 @@ test_flat <- ReadJsonFile(test_raw, json_vars = json_vars)
 # Preprocess
 
 - Remove columns for which information can not be obtained
-- Replace NA with zero 
+- change character type and logical type to numeric type
+- Replace NA with zero on target values
+- How to deal with `visitStartTime` : not yet
 
 ## Remove columns for which information can not be obtained
+
+- "not available in demo datase", "not set" and NA value are same?? 
 
 ```{r}
 train_flat <-
@@ -112,19 +116,33 @@ test_flat <-
             cityId,latitude,longitude,networkLocation,visits,adwordsClickInfo.criteriaParameters))
 ```
 
-## Replace NA with zero 
+## change character type and logical type to numeric type
+
+```{r}
+train_flat <-
+  train_flat %>% 
+  mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
+  mutate_at(c("hits","pageviews","bounces","newVisits","transactionRevenue","adwordsClickInfo.page"), funs(as.numeric(.))) -> tmp
+test_flat <-
+  test_flat %>% 
+  mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
+  mutate_at(c("hits","pageviews","bounces","newVisits","adwordsClickInfo.page"), funs(as.numeric(.)))
+
+```
+
+## Replace NA with zero on target values
 
 ```{r}
 train_flat <- 
   train_flat %>% 
-  mutate(transactionRevenue = transactionRevenue %>% as.numeric()) %>% 
   mutate(transactionRevenue = ifelse(is.na(transactionRevenue),0,transactionRevenue)) 
 ```
 
+## How to deal with `visitStartTime` 
+
 # Export
 
-## 2018/09/17
-
+- 2018/ 9 /18
 - simple imputation data
 
 ```{r}
