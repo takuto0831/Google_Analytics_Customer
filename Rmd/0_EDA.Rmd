@@ -155,7 +155,9 @@ tmp <- train_flat %>%
 train_raw %>% 
   distinct(fullVisitorId, .keep_all = FALSE) %>% 
   NROW
-
+test_raw %>% 
+  distinct(fullVisitorId) %>% 
+  NROW
 train_raw %>% 
   distinct(sessionId, .keep_all = FALSE) %>% 
   NROW
