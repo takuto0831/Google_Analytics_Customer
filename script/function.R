@@ -1,11 +1,9 @@
 ################################## For  Preprocessing ##################################
 
 ### function list
-# CheckMissingValue: データの各列に対して, tabyl関数を適用する. 欠損値の確認.
-# dfSummarySplit: factor value -> numeric valueの順に変更して, dfSummary 関数を適用する
+# ReadJsonFile: データ内の, json fileをカラムに展開する.
 # CheckBinaryColumn: binary value を factor type に変更する(連続値としての情報はない)
 # CheckCategoryColumn: uniqueな値が100(要考察)以下の場合, カテゴリカル変数とする
-# CheckColumnsNotInclude: data.frameの各列が"_add","_imp"を含んでいないことを確認する
 # ImputeMissingValueRF: Random Forest による欠損値補完
 # ImputeMissingValueRF: Multiple imputing による欠損値補完
 # MakeNewValueTSNE: Rstneによる特徴量作成関数
@@ -13,27 +11,16 @@
 
 ########################################################################################
 
-# CheckMissingValue
-CheckMissingValue <- function(data){
-  # Extract factor column
-  col <- data %>% select_if(is.factor) %>% colnames() 
-  # Extract numeric column
-  # col_ <- data %>% select_if(is.factor %>% negate()) %>% colnames() 
-  print("Check factor type value")
-  if(length(col)>=1) for (i in 1:length(col)) data %>% tabyl(col[i]) %>% print()
-  # print("Check numeric type value")
-  # if(length(col_)>=1) for (i in 1:length(col_)) data %>% tabyl(col_[i]) %>% DT::datatable() %>% print()
-}
-
-# dfSummarySplit
-dfSummarySplit <- function(data){
-  # split factor and non-factor,  
-  cbind(data %>%
-          select_if(is.factor),
-        data %>% 
-          select_if(negate(is.factor))) %>% 
-    dfSummary() %>% 
-      view(method = "render")
+# ReadJsonFile
+ReadJsonFile <- function(.data, json_vars){ 
+  .data %>% 
+    dplyr::select(-dplyr::one_of(json_vars)) %>% 
+    dplyr::bind_cols(
+      json_vars %>% 
+        purrr::map_dfc(
+          ~ paste("[", paste(.data[[.x]], collapse = ","), "]") %>% 
+            jsonlite::fromJSON(flatten = TRUE))      
+    )
 }
 
 # CheckBinaryColumn
