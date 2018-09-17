@@ -7,6 +7,11 @@
   - [Description](#description)
   - [Evaluation](#evaluation)
   - [Data](#data)
+- [File](#file)
+  - [Rmd](#rmd)
+  - [data](#data)
+  - [input](#input)
+- [Layered Directory](#layered-directory)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -20,9 +25,9 @@
 
 ## Description
 
-- パレートの法則は多くのビジネスにおいて証明されている. パレート法則とは少数の顧客が利益の大部分を占めているという法則である. (具体的な数字を用いると2割の客が収益の8割を占めるという構造)
-- 顧客ごとの収益を予測する.
-- 結論が実行可能な機能的変更であればよく, 参加企業にとって有益なマーケティング予算の適用となる.
+- The 80/20 rule has proven true for many businesses-only a small percentage of customers produce most of revenue. It is known to "Pareto principle".
+- The predict revenue per customer.
+- Hopefully, the outcome will be more actionable operational changes and a better use of marketing budgets for those companies who choose to use data analysis on top of GA data.
 
 ## Evaluation
 
@@ -32,8 +37,52 @@
 <img src="https://latex.codecogs.com/gif.latex?\mbox{RMSE}&space;=&space;\sqrt{\frac{1}{n}&space;\sum^n_{i=1}&space;(y_i&space;-&space;\hat{y}_i)^2&space;}," />
 </div>
 
-y hat is the predicted revenue for a customer and y is the **natural log** of the acutual revenue value.
+y hat is the predicted revenue for a customer and y is the **natural log** of the acutual revenue value. More importantly, RMSE of ln(1 + `totalRevenue`), since if `totalRevenue`=0 the ln will be infinity.
 
 - For each `fullVisitor ID` in the test set, we must predict the **natural log** of their total revenue in `PredictLogRevenue`.
 
 ## Data 
+
+- you should check at `data/TableDescription.numbers`
+- target value is `transactionRevenue`
+
+# File
+
+## Rmd
+
+- 0_EDA.Rmd
+- 1_Preprocess.Rmd
+
+## data
+
+- TableDescription.numbers
+
+## input
+
+- raw: raw data
+- imp: imputed data
+
+# Layered Directory
+
+```
+├── Google_Analytics_Kaggle.Rproj
+├── README.md
+├── Rmd
+│   ├── 0_EDA.Rmd
+│   ├── 0_EDA.html
+│   └── 1_Preprocess.Rmd
+├── data
+│   ├── TableDescription.numbers
+├── input
+│   ├── imp
+│   │   ├── test_imp1.scv
+│   │   └── train_imp1.scv
+│   └── raw
+│       ├── sample_submission.csv
+│       ├── test.csv
+│       └── train.csv
+└── script
+    ├── function.R
+    └── makedummies.R
+
+```
