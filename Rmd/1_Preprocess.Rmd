@@ -1,0 +1,133 @@
+---
+title: "Google Analytics Customer: Preprocess"
+author: "kotsubo takuto"
+output: 
+    html_document:
+      md_extensions: -ascii_identifiers
+      toc: true
+      toc_depth: 3
+      code_folding: hide
+---
+
+# Setting{.tabset .tabset-fade .tabset-pills}
+
+## knitr option
+
+```{r reset, include=FALSE}
+# 初期化
+rm(list = ls())
+```
+
+```{r set up, message=FALSE}
+# set directory
+setwd("~/Desktop/Google_Analytics_Kaggle/") 
+# max.print 
+options(max.print="200", digits=5)
+# Global options
+library(knitr)
+opts_chunk$set(echo=TRUE,
+               cache = FALSE,
+	             prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+## Library package
+
+```{r package, message=FALSE}
+library(tidyverse)
+library(readr) # for csv
+library(summarytools) # summary easily for EDA
+library(GGally) # ggpairs
+library(skimr) 
+library(janitor)
+library(jsonlite)
+```
+
+## Load funciton
+
+```{r}
+source('~/Desktop/Google_Analytics_Kaggle/script/function.R') # for preprocessing
+source('~/Desktop/Google_Analytics_Kaggle/script/makedummies.R') # for preprocessing
+```
+
+## Import csv
+
+- Import raw data from `input/raw/{tarin|test}.csv`
+- `device`, `geoNetwork`, `totals` and `trafficSource` are JSON style columns.
+
+```{r cache=TRUE}
+# read sample data
+train_sample <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/train.csv",na = c("XNA","NA","","NaN","?"), n_max = 1000)
+# extract columns class
+col_vars_candidate <- train_sample %>% 
+  map_chr(class)
+col_vars <-  
+      case_when(col_vars_candidate == "character" ~ "c",
+                col_vars_candidate == "integer" ~ "i",
+                col_vars_candidate == "numeric" ~ "d") %>% 
+      purrr::set_names(names(col_vars_candidate)) %>% # set name by columns class
+      as.list() %>% # list
+      list_modify(date = "D", visitId = "c") %>% 
+      flatten_chr() %>% # unlist
+      str_c(collapse = "") # connect
+# read raw data
+train_raw <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/train.csv",
+                      na = c("XNA","NA","","NaN","?"),
+                      col_types = col_vars,
+                      locale = readr::locale(date_format = "%Y%m%d"))
+test_raw <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/raw/test.csv",
+                      na = c("XNA","NA","","NaN","?"),
+                      col_types = col_vars,
+                      locale = readr::locale(date_format = "%Y%m%d"))
+# json columns
+json_vars = c("device", "geoNetwork", "totals", "trafficSource")
+# make a flatten data set
+train_flat <- ReadJsonFile(train_raw, json_vars = json_vars)
+test_flat <- ReadJsonFile(test_raw, json_vars = json_vars)
+```
+
+# Preprocess
+
+- Remove columns for which information can not be obtained
+- Replace NA with zero 
+
+## Remove columns for which information can not be obtained
+
+```{r}
+train_flat <-
+  train_flat %>% 
+  select(-c(socialEngagementType,browserSize,browserVersion,operatingSystemVersion,
+            mobileDeviceBranding,mobileDeviceModel,mobileDeviceMarketingName,mobileDeviceInfo,
+            mobileInputSelector,flashVersion,language,screenColors,screenResolution,
+            cityId,latitude,longitude,networkLocation,visits,campaignCode,adwordsClickInfo.criteriaParameters))
+test_flat <-
+  test_flat %>% 
+  select(-c(socialEngagementType,browserSize,browserVersion,operatingSystemVersion,
+            mobileDeviceBranding,mobileDeviceModel,mobileDeviceMarketingName,mobileDeviceInfo,
+            mobileInputSelector,flashVersion,language,screenColors,screenResolution,
+            cityId,latitude,longitude,networkLocation,visits,adwordsClickInfo.criteriaParameters))
+```
+
+## Replace NA with zero 
+
+```{r}
+train_flat <- 
+  train_flat %>% 
+  mutate(transactionRevenue = ifelse(is.na(transactionRevenue),0,transactionRevenue)) 
+```
+
+# Export
+
+## 2018/09/17
+
+- simple imputation data
+
+```{r}
+write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.scv")
+write_csv(test_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.scv")
+```
+
