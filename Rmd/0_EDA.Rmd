@@ -222,6 +222,18 @@ train_flat %>%
 tmp %>% distinct(fullVisitorId) %>% NROW
 ```
 
+- 同一の`sessionId`が複数回出現 -> 同一の会計履歴が複数存在する -> 購入の場合しかありえない??
+- idの解釈が間違っている
+
+```{r}
+train_flat %>% 
+  mutate(transactionRevenue = transactionRevenue %>% as.numeric()) %>% 
+  group_by(sessionId) %>% 
+  summarise(count = n(), RevenueSum = sum(transactionRevenue, na.rm = TRUE)) %>% 
+  ungroup() -> tmp
+tmp %>% 
+  filter(count >= 2)
+```
 ## Check time and date
 
 - 観測期間の確認
