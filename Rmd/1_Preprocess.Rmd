@@ -129,7 +129,6 @@ test_flat <-
   test_flat %>% 
   mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
   mutate_at(c("hits","pageviews","bounces","newVisits","adwordsClickInfo.page"), funs(as.numeric(.)))
-
 ```
 
 ## Replace NA with zero on target values
@@ -142,14 +141,23 @@ train_flat <-
 
 ## How to deal with `visitStartTime` 
 
+- `date` not need
+
+```{r}
+train_flat <- train_flat %>% 
+  mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
+  select(-date)
+test_flat <- test_flat %>% 
+  mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
+  select(-date)
+```
+
 # Export
 
 - 2018/ 9 /18
 - simple imputation data
 
 ```{r}
-train_flat %>% 
-  
 write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.scv")
 write_csv(test_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.scv")
 ```
