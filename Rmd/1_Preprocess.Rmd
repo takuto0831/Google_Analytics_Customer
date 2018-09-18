@@ -95,7 +95,7 @@ test_flat <- ReadJsonFile(test_raw, json_vars = json_vars)
 - Remove columns for which information can not be obtained
 - change character type and logical type to numeric type
 - Replace NA with zero on target values
-- How to deal with `visitStartTime`
+- Convert Unix time stamp to Date on `visitStartTime`
 
 ## Remove columns for which information can not be obtained
 
@@ -139,9 +139,9 @@ train_flat <-
   mutate(transactionRevenue = ifelse(is.na(transactionRevenue),0,transactionRevenue)) 
 ```
 
-## How to deal with `visitStartTime` 
+## Convert Unix time stamp to Date on `visitStartTime`
 
-- `date` not need
+- `date` is unnecessary because it is duplicated
 
 ```{r}
 train_flat <- train_flat %>% 
