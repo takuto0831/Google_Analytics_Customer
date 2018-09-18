@@ -118,6 +118,8 @@ test_flat <-
 
 ## change character type and logical type to numeric type
 
+- 3つのIDはcharcter型で良いか? -> 分析時はこれらの項目は消すので問題ない?
+
 ```{r}
 train_flat <-
   train_flat %>% 
