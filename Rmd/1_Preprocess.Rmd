@@ -158,7 +158,7 @@ test_flat <- test_flat %>%
 - simple imputation data
 
 ```{r}
-write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.scv")
-write_csv(test_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.scv")
+write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.csv")
+write_csv(test_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv")
 ```
 
