@@ -51,7 +51,12 @@ y hat is the predicted revenue for a customer and y is the **natural log** of th
 ## Rmd
 
 - 0_EDA.Rmd
+    - data check simply
+    -
 - 1_Preprocess.Rmd
+    - remove 
+    -
+- 2_EDA.Rmd
 
 ## data
 
@@ -69,8 +74,8 @@ y hat is the predicted revenue for a customer and y is the **natural log** of th
 ├── README.md
 ├── Rmd
 │   ├── 0_EDA.Rmd
-│   ├── 0_EDA.html
-│   └── 1_Preprocess.Rmd
+│   ├── 1_Preprocess.Rmd
+│   └── 2_EDA.Rmd
 ├── data
 │   ├── TableDescription.numbers
 ├── input
