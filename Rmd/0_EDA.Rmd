@@ -45,6 +45,8 @@ library(GGally) # ggpairs
 library(skimr) 
 library(janitor)
 library(jsonlite)
+library(lubridate)
+library(anytime)
 ```
 
 ## Load funciton
@@ -106,7 +108,7 @@ write.csv2(tmp,"~/Desktop/Google_Analytics_Kaggle/data/new_column_names.csv",row
 
 - Apply glimpse, skimr and dfsummary to the all data
 - Search target values
-- Check three id values
+- Check three id values -> 2_EDA.Rmd
 - Check time and date
 - Confirm relationship with target variables -> 2_EDA.Rmd 
 
@@ -223,17 +225,19 @@ tmp %>% distinct(fullVisitorId) %>% NROW
 ```
 
 - 同一の`sessionId`が複数回出現 -> 同一の会計履歴が複数存在する -> 購入の場合しかありえない??
-- idの解釈が間違っている
+- idの解釈が間違っている -> 2_EDA.Rmd
 
-```{r}
+```{r eval=FALSE}
 train_flat %>% 
   mutate(transactionRevenue = transactionRevenue %>% as.numeric()) %>% 
   group_by(sessionId) %>% 
-  summarise(count = n(), RevenueSum = sum(transactionRevenue, na.rm = TRUE)) %>% 
-  ungroup() -> tmp
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  filter(count >= 2) -> tmp
 tmp %>% 
-  filter(count >= 2)
+  inner_join(train_flat,by="sessionId") -> tmp1
 ```
+
 ## Check time and date
 
 - 観測期間の確認
@@ -244,5 +248,20 @@ train_flat %>%
   summarise(from = min(date), to = max(date))
 test_flat %>% 
   summarise(from = min(date), to = max(date))
+```
+
+- time zone is "US/Pacific"
+
+```{r}
+train_flat %>% 
+  mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific") %>% date()) %>% 
+  select(date, visitStartTime) %>% 
+  mutate(check = date - visitStartTime) %>% 
+  summarise(sum(check))
+test_flat %>% 
+  mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific") %>% date()) %>% 
+  select(date, visitStartTime) %>% 
+  mutate(check = date - visitStartTime) %>% 
+  summarise(sum(check))
 ```
 
