@@ -95,7 +95,7 @@ test_flat <- ReadJsonFile(test_raw, json_vars = json_vars)
 - Remove columns for which information can not be obtained
 - change character type and logical type to numeric type
 - Replace NA with zero on target values
-- How to deal with `visitStartTime` : not yet
+- How to deal with `visitStartTime`
 
 ## Remove columns for which information can not be obtained
 
