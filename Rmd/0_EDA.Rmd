@@ -257,11 +257,10 @@ train_flat %>%
   mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific") %>% date()) %>% 
   select(date, visitStartTime) %>% 
   mutate(check = date - visitStartTime) %>% 
-  summarise(sum(check))
+  summarise(max(check), min(check))
 test_flat %>% 
   mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific") %>% date()) %>% 
   select(date, visitStartTime) %>% 
   mutate(check = date - visitStartTime) %>% 
-  summarise(sum(check))
+  summarise(max(check), min(check))
 ```
-
