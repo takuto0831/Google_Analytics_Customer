@@ -53,13 +53,18 @@ y hat is the predicted revenue for a customer and y is the **natural log** of th
 
 Show process simply
 
-- 0_EDA.Rmd
-    - data check simply
-    -
-- 1_Preprocess.Rmd
-    - remove 
-    -
-- 2_EDA.Rmd
+- 0_EDA.Rmd (update: 2018/09/18)
+    - Apply glimpse, skimr and dfsummary to the all data
+    - Search target values
+    - Check three id values -> **2_EDA.Rmd**
+    - Check time and date
+    - Confirm relationship with target variables -> **2_EDA.Rmd** 
+- 1_Preprocess.Rmd (update: 2018/09/18)
+    - Remove columns for which information can not be obtained
+    - change character type and logical type to numeric type
+    - Replace NA with zero on target values
+    - Convert Unix time stamp to Date on `visitStartTime`
+- 2_EDA.Rmd (now begin ...)
 
 ## data
 
