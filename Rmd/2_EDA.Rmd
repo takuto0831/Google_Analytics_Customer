@@ -45,6 +45,7 @@ library(GGally) # ggpairs
 library(skimr) 
 library(janitor)
 library(jsonlite)
+library(lubridate)
 ```
 
 ## Load funciton
@@ -75,16 +76,16 @@ test_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv"
 ### glimpse 
 
 ```{r cache=TRUE}
-glimpse(train_imp1)
-glimpse(test_imp1)
+glimpse(train_imp)
+glimpse(test_imp)
 ```
 
 ### dfsummary
 
 ```{r cache=TRUE}
-dfSummary(train_imp1) %>% 
+dfSummary(train_imp) %>% 
   view(method = "render")
-dfSummary(test_imp1) %>% 
+dfSummary(test_imp) %>% 
   view(method = "render")
 ```
 
