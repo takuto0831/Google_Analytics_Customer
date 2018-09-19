@@ -205,11 +205,11 @@ test_flat %>% distinct(fullVisitorId, visitId) %>% NROW
 - `sessionId` は `fullVisitorId`と`visitId`により形成されていることを確認する
 
 ```{r}
-train_imp %>% 
+train_flat %>% 
   unite(tm, fullVisitorId, visitId,sep="_") %>% 
   filter(tm != sessionId) %>% 
   NROW
-test_imp %>% 
+test_flat %>% 
   unite(tm, fullVisitorId, visitId,sep="_") %>% 
   filter(tm != sessionId) %>% 
   NROW
