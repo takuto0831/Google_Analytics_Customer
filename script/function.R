@@ -110,5 +110,5 @@ SummarizeFunc <- function(data,group){
     summarise_if(~!CheckBinaryColumn(.x),fn2) %>% 
     round(digits = 4)
   # combine
-  cbind(tmp1,tmp2 %>% select(-group)) %>% return()
+  dplyr::bind_cols(tmp1,tmp2 %>% select(-group)) %>% return()
 }
