@@ -202,6 +202,19 @@ train_flat %>% distinct(fullVisitorId, visitId) %>% NROW
 test_flat %>% distinct(fullVisitorId, visitId) %>% NROW
 ```
 
+- `sessionId` は `fullVisitorId`と`visitId`により形成されていることを確認する
+
+```{r}
+train_imp %>% 
+  unite(tm, fullVisitorId, visitId,sep="_") %>% 
+  filter(tm != sessionId) %>% 
+  NROW
+test_imp %>% 
+  unite(tm, fullVisitorId, visitId,sep="_") %>% 
+  filter(tm != sessionId) %>% 
+  NROW
+```
+
 - train, testに同一のuserは出現していないか
 - user id: 全1331409種 (unique value: 1323730)
 - 同一のuserが存在する. 
