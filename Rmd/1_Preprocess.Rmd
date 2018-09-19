@@ -104,13 +104,13 @@ test_flat <- ReadJsonFile(test_raw, json_vars = json_vars)
 ```{r}
 train_flat <-
   train_flat %>% 
-  select(-c(socialEngagementType,browserSize,browserVersion,operatingSystemVersion,
+  select(-c(sessionId,socialEngagementType,browserSize,browserVersion,operatingSystemVersion,
             mobileDeviceBranding,mobileDeviceModel,mobileDeviceMarketingName,mobileDeviceInfo,
             mobileInputSelector,flashVersion,language,screenColors,screenResolution,
             cityId,latitude,longitude,networkLocation,visits,campaignCode,adwordsClickInfo.criteriaParameters))
 test_flat <-
   test_flat %>% 
-  select(-c(socialEngagementType,browserSize,browserVersion,operatingSystemVersion,
+  select(-c(sessionId,socialEngagementType,browserSize,browserVersion,operatingSystemVersion,
             mobileDeviceBranding,mobileDeviceModel,mobileDeviceMarketingName,mobileDeviceInfo,
             mobileInputSelector,flashVersion,language,screenColors,screenResolution,
             cityId,latitude,longitude,networkLocation,visits,adwordsClickInfo.criteriaParameters))
@@ -118,17 +118,19 @@ test_flat <-
 
 ## change character type and logical type to numeric type
 
-- 3つのIDはcharcter型で良いか? -> 分析時はこれらの項目は消すので問題ない?
+- 3つのIDはcharcter型で良いか? -> csv読み込み時,int型になるので変更しておく (`sessionId`以外)
 
 ```{r}
 train_flat <-
   train_flat %>% 
   mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
-  mutate_at(c("hits","pageviews","bounces","newVisits","transactionRevenue","adwordsClickInfo.page"), funs(as.numeric(.))) -> tmp
+  mutate_at(c("hits","pageviews","bounces","newVisits","transactionRevenue","adwordsClickInfo.page"), funs(as.numeric(.))) %>% 
+  mutate_at(c("fullVisitorId","visitId", funs(as.numeric(.))))
 test_flat <-
   test_flat %>% 
   mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
-  mutate_at(c("hits","pageviews","bounces","newVisits","adwordsClickInfo.page"), funs(as.numeric(.)))
+  mutate_at(c("hits","pageviews","bounces","newVisits","adwordsClickInfo.page"), funs(as.numeric(.))) %>% 
+  mutate_at(c("fullVisitorId","visitId", funs(as.numeric(.))))
 ```
 
 ## Replace NA with zero on target values
