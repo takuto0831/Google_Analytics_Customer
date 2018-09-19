@@ -23,6 +23,11 @@ rm(list = ls())
 setwd("~/Desktop/Google_Analytics_Kaggle/") 
 # max.print 
 options(max.print="200", digits=5)
+# show option  
+options("scipen"=100, "digits"=4)
+# time zone option
+options(readr.default_locale=readr::locale(tz="US/Pacific"))
+
 # Global options
 library(knitr)
 opts_chunk$set(echo=TRUE,
@@ -46,6 +51,7 @@ library(skimr)
 library(janitor)
 library(jsonlite)
 library(lubridate)
+library(pipeR)
 ```
 
 ## Load funciton
@@ -69,7 +75,7 @@ test_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv"
 
 - Apply glimpse and dfsummary to the all data
 - Check three id values
-- Confirm relationship with target variables -> 2_EDA.Rmd 
+- Confirm relationship with target variables: not yet 
 
 ## Apply glimpse and dfsummary to the all data{.tabset .tabset-fade .tabset-pills}
 
@@ -94,7 +100,78 @@ dfSummary(test_imp) %>%
 それぞれのidが何を意味しているのか, 集約する上で理解する必要がある. 前処理したデータに対して, あらためて調査する.
 
 - `fullVisitorId`
-- `sessionId`
 - `visitId`
+
+### check what mean values
+
+各idにおいて同値のidが何を意味するのか調べる. 
+
+- `fullVisitorId`:
+    - user idと考えて良さそう, 個人情報が同じ. 
+    - 各user の`newVisits`が複数回ある場合がある (2: 2834, 3:30). 
+    - 各userの`visitNumber`にも同じ値が出現していることある (2:4052, 3: 42).
+    - 解決策: 観測期間でid振り直して, id == 1 & visitNumber == 1の行を newVisits =1とする?  
+
+```{r}
+train_imp %>% 
+  group_by(fullVisitorId) %>% 
+  mutate(num = row_number()) %>% 
+  filter(num == max(num)) %>% 
+  ungroup() %>% 
+  select(fullVisitorId,num) -> tmp
+
+tmp %>% 
+  inner_join(train_imp,by=c("fullVisitorId")) -> tmp1
+
+train_imp %>% 
+  filter(newVisits == 1) %>% 
+  group_by(fullVisitorId) %>% 
+  mutate(num1 = n()) %>% 
+  tabyl(num1)
+
+train_imp %>% 
+  group_by(fullVisitorId, visitNumber) %>% 
+  mutate(num = n()) %>% 
+  ungroup() %>% 
+  tabyl(num)
+```
+
+- `visitId`:
+    - システム側の id, visitStartTimeが同じであることから推測
+    - `visitId`と`visitStartTime`のuniqueな個数が一致しない (dif 856個) -> user 側の time zone 使われている??
+    - dateと比べて情報ないので不要??
+
+```{r}
+train_imp %>% 
+  group_by(visitId) %>% 
+  mutate(num = row_number()) %>% 
+  filter(num == max(num)) %>% 
+  ungroup() %>% 
+  select(visitId,num) -> tmp
+
+tmp %>% 
+  inner_join(train_imp,by=c("visitId")) -> tmp2
+
+train_imp %>>%
+  (~ distinct(.,visitId) %>% NROW %>% print) %>% 
+  distinct(visitStartTime) %>% NROW
+```
+
+- `fullVisitorId` & `visitId` : 
+
+```{r}
+train_imp %>% 
+  group_by(fullVisitorId, visitId) %>% 
+  mutate(num = row_number()) %>% 
+  filter(num == max(num)) %>% 
+  ungroup() %>% 
+  select(fullVisitorId,visitId,num) -> tmp
+
+tmp %>% 
+  inner_join(train_imp,by=c("fullVisitorId","visitId")) -> tmp3
+```
+
+
+
 
 
