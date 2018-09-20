@@ -40,7 +40,7 @@
 y hat is the predicted revenue for a customer and y is the **natural log** of the acutual revenue value. More importantly, RMSE of ln(1 + `totalRevenue`), since if `totalRevenue`=0 the ln will be infinity.
 
 - For each `fullVisitor ID` in the test set, we must predict the **natural log** of their total revenue in `PredictLogRevenue`.
-- Using Log(Sum(1 + `totalRevenue`) for aggregate by user id
+- Using Log(1 + `totalRevenue`) for aggregate by user id, `totalReveneu` is sum of `transactionRevenue` by user id.
 
 ## Data 
 
