@@ -52,6 +52,8 @@ library(janitor)
 library(jsonlite)
 library(lubridate)
 library(pipeR)
+library(scales)
+library(gridExtra)
 ```
 
 ## Load funciton
@@ -61,6 +63,13 @@ source('~/Desktop/Google_Analytics_Kaggle/script/function.R') # for preprocessin
 source('~/Desktop/Google_Analytics_Kaggle/script/makedummies.R') # for preprocessing
 ```
 
+## Set ggplot theme
+
+```{r}
+# set ggplot theme
+library(ggthemes)
+theme_set(theme_classic(base_size = 14, base_family = "HiraKakuPro-W3"))
+```
 ## Import csv
 
 - Import raw data from `input/imp/{tarin|test}.csv`
@@ -75,6 +84,7 @@ test_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv"
 
 - Apply glimpse and dfsummary to the all data
 - Check three id values
+- Check device information
 - Confirm relationship with target variables: not yet 
 
 ## Apply glimpse and dfsummary to the all data{.tabset .tabset-fade .tabset-pills}
@@ -158,6 +168,8 @@ train_imp %>>%
 ```
 
 - `fullVisitorId` & `visitId` : 
+    - 重複 898件, `visitNumber`は一致する
+    - 日付情報や, userの情報が異なる場合ある
 
 ```{r}
 train_imp %>% 
@@ -169,9 +181,190 @@ train_imp %>%
 
 tmp %>% 
   inner_join(train_imp,by=c("fullVisitorId","visitId")) -> tmp3
+
+tmp3 %>% 
+  filter(num == 2) %>% 
+  select(fullVisitorId, visitId,visitNumber) %>% 
+  group_by(fullVisitorId,visitId) %>% 
+  mutate( Difference = visitNumber - lag(visitNumber)) %>% 
+  tabyl(Difference)
 ```
 
+## Confirm relationship with target variables
 
+### Chech target values
 
+```{r}
+train_imp %>% 
+  group_by(fullVisitorId) %>% 
+  summarise(rev_sum = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  filter(rev_sum > 0) %>% 
+  ggplot(aes(x=log1p(rev_sum), y=..density..)) + 
+  geom_histogram(fill='steelblue', na.rm=TRUE, bins=40) + 
+  geom_density(aes(x=log1p(rev_sum)), fill='orange', color='orange', alpha=0.3, na.rm=TRUE) + 
+  labs(
+    title = 'Distribution of sum of transaction revenue without 0',
+    x = 'Natural log1p of transaction revenue'
+  )
+```
 
+### day & target
+
+```{r}
+## daily visit in train data
+g1 <- 
+  train_imp %>%
+  mutate(date = visitStartTime %>% date) %>% 
+  group_by(date) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=date, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='',
+    y='Visits number',
+    title='Daily visits in train data'
+  ) +
+  scale_x_date(labels = date_format("%Y-%m-%d"))
+## daily visit in test data
+g2 <- 
+  test_imp %>%
+  mutate(date = visitStartTime %>% date) %>% 
+  group_by(date) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=date, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='',
+    y='Visits number',
+    title='Daily visits in test data'
+  ) +
+  scale_x_date(labels = date_format("%Y-%m-%d"))
+## log(tatalRevenue) in train data
+g3 <-
+  train_imp %>%
+  mutate(date = visitStartTime %>% date) %>% 
+  group_by(date) %>% 
+  summarise(day_rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=date, y=log1p(day_rev))) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='',
+    y='log1p(totalRevenue)',
+    title='Daily transaction revenue'
+  ) +
+  scale_x_date(labels = date_format("%Y-%m-%d"))
+
+grid.arrange(g1, g2, g3, nrow=3)
+```
+
+### hour & target
+
+```{r}
+## daily visit in train data
+g1 <- 
+  train_imp %>%
+  mutate(hour = visitStartTime %>% hour) %>% 
+  group_by(hour) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='Hour of day',
+    y='Visits number',
+    title='visits number in train data by hour of day'
+  )
+
+## daily visit in test data
+g2 <- 
+  test_imp %>%
+  mutate(hour = visitStartTime %>% hour) %>% 
+  group_by(hour) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='Hour of day',
+    y='Visits number',
+    title='visits number in test data by hour of day'
+  ) 
+
+## log(tatalRevenue) in train data
+g3 <-
+  train_imp %>% 
+  mutate(hour = visitStartTime %>% hour) %>% 
+  group_by(hour) %>% 
+  summarise(day_rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=log1p(day_rev))) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='Hour of day',
+    y='log1p(totalRevenue)',
+    title='Transaction revenue by hour of day'
+  ) 
+
+grid.arrange(g1, g2, g3, nrow=3)
+```
+
+### Device & target
+
+- `browser`: top 9個にrevenue.
+- `operatingSystem`: top 7個にrevenue.
+- `isMobile`: 
+- `deviceCategory`: 3種
+
+```{r}
+g1 <-
+  train_imp %>% 
+  group_by(browser) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(9, rev) %>% 
+  ggplot(aes(x=reorder(browser, -rev), y=log1p(rev))) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='browser',
+       y='Revenue',
+       title='Distribution of revenue by device browser') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(operatingSystem) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(7, rev) %>% 
+  ggplot(aes(x=reorder(operatingSystem, -rev), y=log1p(rev))) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='operatingSystem',
+       y='Revenue',
+       title='Distribution of revenue by device operatingSystem') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+g3 <-
+  train_imp %>% 
+  group_by(deviceCategory) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(7, rev) %>% 
+  ggplot(aes(x=reorder(deviceCategory, -rev), y=log1p(rev))) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='deviceCategory',
+       y='Revenue',
+       title='Distribution of revenue by deviceCategory') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+grid.arrange(g1, g2, g3, nrow=3)
+```
 
