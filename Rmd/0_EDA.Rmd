@@ -1,5 +1,5 @@
 ---
-title: "Google Analytics Customer: EDA"
+title: "Google Analytics Customer: EDA version1"
 author: "kotsubo takuto"
 output: 
     html_document:
