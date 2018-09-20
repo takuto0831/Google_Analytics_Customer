@@ -1,5 +1,5 @@
 ---
-title: "Google Analytics Customer: EDA"
+title: "Google Analytics Customer: EDA version2"
 author: "kotsubo takuto"
 output: 
     html_document:
@@ -84,8 +84,7 @@ test_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv"
 
 - Apply glimpse and dfsummary to the all data
 - Check three id values
-- Check device information
-- Confirm relationship with target variables: not yet 
+- Confirm relationship with target variables: not yet
 
 ## Apply glimpse and dfsummary to the all data{.tabset .tabset-fade .tabset-pills}
 
@@ -112,8 +111,6 @@ dfSummary(test_imp) %>%
 - `fullVisitorId`
 - `visitId`
 
-### check what mean values
-
 各idにおいて同値のidが何を意味するのか調べる. 
 
 - `fullVisitorId`:
@@ -122,7 +119,7 @@ dfSummary(test_imp) %>%
     - 各userの`visitNumber`にも同じ値が出現していることある (2:4052, 3: 42).
     - 解決策: 観測期間でid振り直して, id == 1 & visitNumber == 1の行を newVisits =1とする?  
 
-```{r}
+```{r cache=TRUE}
 train_imp %>% 
   group_by(fullVisitorId) %>% 
   mutate(num = row_number()) %>% 
@@ -151,7 +148,7 @@ train_imp %>%
     - `visitId`と`visitStartTime`のuniqueな個数が一致しない (dif 856個) -> user 側の time zone 使われている??
     - dateと比べて情報ないので不要??
 
-```{r}
+```{r cache=TRUE}
 train_imp %>% 
   group_by(visitId) %>% 
   mutate(num = row_number()) %>% 
@@ -171,7 +168,7 @@ train_imp %>>%
     - 重複 898件, `visitNumber`は一致する
     - 日付情報や, userの情報が異なる場合ある
 
-```{r}
+```{r cache=TRUE}
 train_imp %>% 
   group_by(fullVisitorId, visitId) %>% 
   mutate(num = row_number()) %>% 
@@ -194,7 +191,9 @@ tmp3 %>%
 
 ### Chech target values
 
-```{r}
+- 0より大きいのtotalRevenueに対して, log1p()を計算.
+
+```{r cache=TRUE}
 train_imp %>% 
   group_by(fullVisitorId) %>% 
   summarise(rev_sum = sum(transactionRevenue)) %>% 
@@ -211,7 +210,7 @@ train_imp %>%
 
 ### day & target
 
-```{r}
+```{r fig.width=10, fig.height=10, cache=TRUE}
 ## daily visit in train data
 g1 <- 
   train_imp %>%
@@ -251,22 +250,23 @@ g3 <-
   group_by(date) %>% 
   summarise(day_rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
-  ggplot(aes(x=date, y=log1p(day_rev))) + 
+  ggplot(aes(x=date, y=day_rev)) + 
   geom_line(color='steelblue') +
   geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
   labs(
     x='',
-    y='log1p(totalRevenue)',
+    y='totalRevenue',
     title='Daily transaction revenue'
   ) +
-  scale_x_date(labels = date_format("%Y-%m-%d"))
+  scale_x_date(labels = date_format("%Y-%m-%d")) +
+  scale_y_continuous(labels = scales::scientific)
 
 grid.arrange(g1, g2, g3, nrow=3)
 ```
 
 ### hour & target
 
-```{r}
+```{r fig.width=10, fig.height=10, cache=TRUE}
 ## daily visit in train data
 g1 <- 
   train_imp %>%
@@ -306,38 +306,79 @@ g3 <-
   group_by(hour) %>% 
   summarise(day_rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
-  ggplot(aes(x=hour, y=log1p(day_rev))) + 
+  ggplot(aes(x=hour, y=day_rev)) + 
   geom_line(color='steelblue') +
   geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
   labs(
     x='Hour of day',
-    y='log1p(totalRevenue)',
+    y='totalRevenue',
     title='Transaction revenue by hour of day'
-  ) 
+  ) +
+  scale_y_continuous(labels = scales::scientific)
 
 grid.arrange(g1, g2, g3, nrow=3)
 ```
 
 ### Device & target
 
-- `browser`: top 9個にrevenue.
-- `operatingSystem`: top 7個にrevenue.
-- `isMobile`: 
+- `browser`: top 9種に0より大きいrevenue.
+- `operatingSystem`: top 7個に0より大きいrevenue.
+- `isMobile`: deviceCategoryの情報に集約されているので不要??
 - `deviceCategory`: 3種
 
-```{r}
+- 少しFirefoxがつよいのかなというイメージ
+
+```{r fig.width=20, fig.height=20, cache=TRUE}
 g1 <-
+  train_imp %>% 
+  group_by(browser) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(15, count) %>% 
+  ggplot(aes(x=reorder(browser, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y='Access number',
+       title='Distribution of device browser') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
   train_imp %>% 
   group_by(browser) %>% 
   summarise(rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
   top_n(9, rev) %>% 
-  ggplot(aes(x=reorder(browser, -rev), y=log1p(rev))) +
+  ggplot(aes(x=reorder(browser, -rev), y=rev)) +
   geom_bar(stat='identity', fill='steelblue') +
   labs(x='browser',
-       y='Revenue',
+       y='totalRevenue',
        title='Distribution of revenue by device browser') +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=7) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+- WindowsとMacintoshの順位が変わっている. 
+
+```{r fig.width=20, fig.height=20, cache=TRUE}
+g1 <-
+  train_imp %>% 
+  group_by(operatingSystem) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(15, count) %>% 
+  ggplot(aes(x=reorder(operatingSystem, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y='Access number',
+       title='Distribution of device operatingSystem') +
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
 g2 <-
   train_imp %>% 
@@ -345,26 +386,124 @@ g2 <-
   summarise(rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
   top_n(7, rev) %>% 
-  ggplot(aes(x=reorder(operatingSystem, -rev), y=log1p(rev))) +
+  ggplot(aes(x=reorder(operatingSystem, -rev), y=rev)) +
   geom_bar(stat='identity', fill='steelblue') +
   labs(x='operatingSystem',
-       y='Revenue',
+       y='totalRevenue',
        title='Distribution of revenue by device operatingSystem') +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=8) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-g3 <-
+grid.arrange(g1, g2, nrow=2)
+```
+
+- 全体比で見ると, mobileの割合が少ないかなという感じ.
+
+```{r fig.width=20, fig.height=20, cache=TRUE}
+g1 <-
+  train_imp %>% 
+  group_by(deviceCategory) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=reorder(deviceCategory, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y='Access number',
+       title='Distribution of deviceCategory') +
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
   train_imp %>% 
   group_by(deviceCategory) %>% 
   summarise(rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
-  top_n(7, rev) %>% 
-  ggplot(aes(x=reorder(deviceCategory, -rev), y=log1p(rev))) +
+  ggplot(aes(x=reorder(deviceCategory, -rev), y=rev)) +
   geom_bar(stat='identity', fill='steelblue') +
   labs(x='deviceCategory',
-       y='Revenue',
+       y='totalRevenue',
        title='Distribution of revenue by deviceCategory') +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=8) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
-grid.arrange(g1, g2, g3, nrow=3)
+grid.arrange(g1, g2, ncol=2)
 ```
 
+- pipeRで遊ぶ, 全く関係ない
+
+```{r eval=FALSE}
+train_imp %>>% 
+  (~ g1 = 
+     group_by(.,deviceCategory) %>>% 
+     summarise(count = n()) %>>%
+     ungroup() %>>% 
+     ggplot(aes(x=reorder(deviceCategory, -count), y=count)) +
+     geom_bar(stat='identity', fill='steelblue') +
+     labs(x='',
+          y='Access number',
+          title='Distribution of deviceCategory') +
+     geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=4) +
+     # scale_y_continuous(labels = scales::scientific) +
+     theme(axis.text.x = element_text(angle = 30, hjust = 1))
+   ) %>>%
+  summarise(rev = sum(transactionRevenue)) %>>% 
+  ungroup() %>>% 
+  ggplot(aes(x=reorder(deviceCategory, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='deviceCategory',
+       y='totalRevenue',
+       title='Distribution of revenue by deviceCategory') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=4) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) -> g2
+grid.arrange(g1, g2, ncol=2)
+```
+
+### geoNetwork & target
+
+- `continent`: 6種類
+- `subContinent`
+- `country`
+- `region`
+- `metro`
+- `city`
+- `networkDomain`
+
+- 比率でみると, Africaが強い, Europeはアクセス数の割に購入金額が少ない
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(continent) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  # top_n(15, count) %>% 
+  ggplot(aes(x=reorder(continent, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'number of continent',
+       title='Distribution of continent') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(continent) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  # top_n(9, rev) %>% 
+  ggplot(aes(x=reorder(continent, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='continent',
+       y='totalRevenue',
+       title='Distribution of revenue by continent') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=8) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
