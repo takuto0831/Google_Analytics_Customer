@@ -125,12 +125,12 @@ train_flat <-
   train_flat %>% 
   mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
   mutate_at(c("hits","pageviews","bounces","newVisits","transactionRevenue","adwordsClickInfo.page"), funs(as.numeric(.))) %>% 
-  mutate_at(c("fullVisitorId","visitId", funs(as.numeric(.))))
+  mutate_at(c("fullVisitorId","visitId"), funs(as.numeric(.)))
 test_flat <-
   test_flat %>% 
   mutate_at(c("isMobile", "isTrueDirect","adwordsClickInfo.isVideoAd"), funs(as.numeric(.))) %>% 
   mutate_at(c("hits","pageviews","bounces","newVisits","adwordsClickInfo.page"), funs(as.numeric(.))) %>% 
-  mutate_at(c("fullVisitorId","visitId", funs(as.numeric(.))))
+  mutate_at(c("fullVisitorId","visitId"), funs(as.numeric(.)))
 ```
 
 ## Replace NA with zero on target values
@@ -147,11 +147,55 @@ train_flat <-
 
 ```{r}
 train_flat <- train_flat %>% 
-  mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
+  mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
   select(-date)
 test_flat <- test_flat %>% 
-  mutate(visitStartTime = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
+  mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
   select(-date)
+```
+
+## Determine the local time
+
+- 大陸: 大陸の中で最大数を持つ都市をtzに使用する
+    - Africa: Africa/Tunis
+    - Americas: America/Los_Angeles
+    - Asia: Asia/Bangkok
+    - Europe: Europe/London
+    - Oceania: Australia/Sydney
+- 国
+    - 
+
+```{r eval=FALSE}
+tmp <- 
+  train_flat %>% 
+  mutate(DateTimeLocal = # Continent
+           case_when(
+             continent == "Africa" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Tunis"),
+             continent == "Americas" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Los_Angeles"),
+             continent == "Asia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Bangkok"),
+             continent == "Europe" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/London"),
+             continent == "Oceania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Australia/Sydney"),
+             continent == "(not set)" ~ DateTimeSeattle
+           )
+         ) %>% 
+  mutate(DateTimeLocal = # country
+           case_when(
+             country == "India" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Indian/Kerguelen"),
+             country == "Canada" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Canada/Atlantic"),
+             country == "Japan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Tokyo"),
+             country == "Turkey" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Istanbul"),
+             country == "Germany" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Berlin"),
+             country == "Brazil" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Sao_Paulo"),
+             country == "France" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Paris"),
+             country == "Mexico" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Mexico_City"),
+             country == "Taiwan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Taipei")
+           )
+         ) %>% 
+  mutate(DateTimeLocal = # city
+           case_when(
+             city == "Chicago" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Chicago")
+           )
+  )
 ```
 
 # Export
