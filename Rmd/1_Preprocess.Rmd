@@ -156,14 +156,15 @@ test_flat <- test_flat %>%
 
 ## Determine the local time
 
-- 大陸: 大陸の中で最大数を持つ都市をtzに使用する
+- continent: 大陸の中で最大数を持つ都市をtzに使用する
     - Africa: Africa/Tunis
     - Americas: America/Los_Angeles
     - Asia: Asia/Bangkok
     - Europe: Europe/London
     - Oceania: Australia/Sydney
-- 国
+- country: 首都をtzとする
     - 
+- city: 大きな国(ロシア, 中国, アメリカ等)について個別に選択する
 
 ```{r eval=FALSE}
 tmp <- 
@@ -188,7 +189,28 @@ tmp <-
              country == "Brazil" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Sao_Paulo"),
              country == "France" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Paris"),
              country == "Mexico" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Mexico_City"),
-             country == "Taiwan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Taipei")
+             country == "Taiwan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Taipei"),
+             country == "Russia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Spain" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Netherlands" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Italy" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Poland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Indonesia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Philippines" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Singapore" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Ireland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Malaysia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Romania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Ukraine" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Israel" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Peru" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Sweden" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "South Korea" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Argentina" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Colombia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+             country == "Hong Kong" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
+
+
            )
          ) %>% 
   mutate(DateTimeLocal = # city
@@ -196,7 +218,7 @@ tmp <-
              city == "Chicago" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Chicago")
            )
   )
-```
+country == "Netherlands" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),```
 
 # Export
 
