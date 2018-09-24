@@ -144,13 +144,16 @@ train_flat <-
 ## Convert Unix time stamp to Date on `visitStartTime`
 
 - `date` is unnecessary because it is duplicated
+- POSIXct型は timezoneを指定する必要があるのでcharcter型にして, 読み込む時に戻す
 
 ```{r}
 train_flat <- train_flat %>% 
   mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
+  mutate(DateTimeSeattle = DateTimeSeattle %>% as.character) %>% 
   select(-date)
 test_flat <- test_flat %>% 
-  mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
+  mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>%   
+  mutate(DateTimeSeattle = DateTimeSeattle %>% as.character) %>% 
   select(-date)
 ```
 
@@ -162,12 +165,16 @@ test_flat <- test_flat %>%
     - Asia: Asia/Bangkok
     - Europe: Europe/London
     - Oceania: Australia/Sydney
-- country: 首都をtzとする
-    - 
-- city: 大きな国(ロシア, 中国, アメリカ等)について個別に選択する
+- country: 
+    - 首都をtime zone とする
+- city: 
+    - 大きな国(ロシア, 中国, アメリカ等)について個別に選択する
+    - 巨大な都市については個別に入力
+- POSIXct型は timezoneを指定する必要があるのでcharcter型にして, 読み込む時に戻す
+- `visitStartTime` is unnecessary because it is duplicated
 
-```{r eval=FALSE}
-tmp <- 
+```{r }
+train_flat <- 
   train_flat %>% 
   mutate(DateTimeLocal = # Continent
            case_when(
@@ -190,40 +197,147 @@ tmp <-
              country == "France" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Paris"),
              country == "Mexico" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Mexico_City"),
              country == "Taiwan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Taipei"),
-             country == "Russia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Spain" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Netherlands" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Italy" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Poland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Indonesia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Philippines" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Singapore" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Ireland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Malaysia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Romania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Ukraine" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Israel" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Peru" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Sweden" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "South Korea" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Argentina" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Colombia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-             country == "Hong Kong" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),
-
-
+             country == "Russia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Moscow"),
+             country == "Spain" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Madrid"),
+             country == "Netherlands" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Amsterdam"),
+             country == "Italy" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Rome"),
+             country == "Poland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Warsaw"),
+             country == "Indonesia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Jakarta"),
+             country == "Philippines" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Manila"),
+             country == "Singapore" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Singapore"),
+             country == "Ireland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Dublin"),
+             country == "Malaysia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Kuala_Lumpur"),
+             country == "Romania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Bucharest"),
+             country == "Ukraine" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Kiev"),
+             country == "Israel" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Jerusalem"),
+             country == "Peru" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Lima"),
+             country == "Sweden" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Stockholm"),
+             country == "South Korea" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Seoul"),
+             country == "Argentina" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Argentina/Buenos_Aires"),
+             country == "Colombia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Bogota"),
+             country == "Hong Kong" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Hong_Kong"),
+             country == "Belgium" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Brussels"),
+             country == "Czechia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Prague"),
+             country == "Pakistan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Karachi"),
+             country == "China" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Shanghai"),
+             country == "Greece" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Athens"),
+             country == "Denmark" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Copenhagen"),
+             country == "United Arab Emirates" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Dubai"),
+             country == "Saudi Arabia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Riyadh"),
+             country == "Austria" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Vienna"),
+             country == "Hungary" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Budapest"),
+             country == "Portugal" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Lisbon"),
+             country == "Egypt" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Cairo"),
+             country == "Bangladesh" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Dhaka"),
+             country == "Norway" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Oslo"),
+             country == "New Zealand" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Pacific/Auckland"),
+             country == "Venezuela" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Caracas"),
+             # country == "South Africa" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ""),
+             country == "Algeria" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Algiers"),
+             country == "Bulgaria" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Sofia"),
+             country == "Chile" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Santiago"),
+             country == "Morocco" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Casablanca"),
+             country == "Serbia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Belgrade"),
+             country == "Slovakia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Bratislava"),
+             TRUE ~ DateTimeLocal # other value for keeps
            )
          ) %>% 
   mutate(DateTimeLocal = # city
            case_when(
-             city == "Chicago" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Chicago")
+             city == "Chicago" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Chicago"),
+             city == "Toronto" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Toronto"),
+             city == "Jakarta" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Jakarta"),
+             city == "Melbourne" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Australia/Melbourne"),
+             TRUE ~ DateTimeLocal
            )
-  )
-country == "Netherlands" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ),```
+  ) %>% 
+  mutate(DateTimeLocal = DateTimeLocal %>% as.character) %>% 
+  select(-visitStartTime)
+
+test_flat <- 
+  test_flat %>% 
+  mutate(DateTimeLocal = # Continent
+           case_when(
+             continent == "Africa" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Tunis"),
+             continent == "Americas" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Los_Angeles"),
+             continent == "Asia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Bangkok"),
+             continent == "Europe" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/London"),
+             continent == "Oceania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Australia/Sydney"),
+             continent == "(not set)" ~ DateTimeSeattle
+           )
+         ) %>% 
+  mutate(DateTimeLocal = # country
+           case_when(
+             country == "India" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Indian/Kerguelen"),
+             country == "Canada" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Canada/Atlantic"),
+             country == "Japan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Tokyo"),
+             country == "Turkey" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Istanbul"),
+             country == "Germany" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Berlin"),
+             country == "Brazil" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Sao_Paulo"),
+             country == "France" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Paris"),
+             country == "Mexico" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Mexico_City"),
+             country == "Taiwan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Taipei"),
+             country == "Russia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Moscow"),
+             country == "Spain" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Madrid"),
+             country == "Netherlands" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Amsterdam"),
+             country == "Italy" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Rome"),
+             country == "Poland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Warsaw"),
+             country == "Indonesia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Jakarta"),
+             country == "Philippines" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Manila"),
+             country == "Singapore" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Singapore"),
+             country == "Ireland" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Dublin"),
+             country == "Malaysia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Kuala_Lumpur"),
+             country == "Romania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Bucharest"),
+             country == "Ukraine" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Kiev"),
+             country == "Israel" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Jerusalem"),
+             country == "Peru" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Lima"),
+             country == "Sweden" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Stockholm"),
+             country == "South Korea" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Seoul"),
+             country == "Argentina" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Argentina/Buenos_Aires"),
+             country == "Colombia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Bogota"),
+             country == "Hong Kong" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Hong_Kong"),
+             country == "Belgium" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Brussels"),
+             country == "Czechia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Prague"),
+             country == "Pakistan" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Karachi"),
+             country == "China" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Shanghai"),
+             country == "Greece" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Athens"),
+             country == "Denmark" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Copenhagen"),
+             country == "United Arab Emirates" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Dubai"),
+             country == "Saudi Arabia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Riyadh"),
+             country == "Austria" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Vienna"),
+             country == "Hungary" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Budapest"),
+             country == "Portugal" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Lisbon"),
+             country == "Egypt" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Cairo"),
+             country == "Bangladesh" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Dhaka"),
+             country == "Norway" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Oslo"),
+             country == "New Zealand" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Pacific/Auckland"),
+             country == "Venezuela" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Caracas"),
+             # country == "South Africa" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = ""),
+             country == "Algeria" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Algiers"),
+             country == "Bulgaria" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Sofia"),
+             country == "Chile" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Santiago"),
+             country == "Morocco" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Africa/Casablanca"),
+             country == "Serbia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Belgrade"),
+             country == "Slovakia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/Bratislava"),
+             TRUE ~ DateTimeLocal # other value for keeps
+           )
+         ) %>% 
+  mutate(DateTimeLocal = # city
+           case_when(
+             city == "Chicago" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Chicago"),
+             city == "Toronto" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "America/Toronto"),
+             city == "Jakarta" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Jakarta"),
+             city == "Melbourne" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Australia/Melbourne"),
+             TRUE ~ DateTimeLocal
+           )
+  ) %>% 
+  mutate(DateTimeLocal = DateTimeLocal %>% as.character) %>% 
+  select(-visitStartTime)
+```
 
 # Export
 
-- 2018/ 9 /18
-- simple imputation data
+- 2018/ 9 /23
 
 ```{r}
 write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.csv")
