@@ -76,8 +76,12 @@ theme_set(theme_classic(base_size = 14, base_family = "HiraKakuPro-W3"))
 
 ```{r cache=TRUE}
 # read impute data
-train_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.csv")
-test_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv")
+train_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.csv") %>% 
+  mutate(DateTimeSeattle = DateTimeSeattle %>% as.POSIXct(format = "%Y-%m-%d %H:%M:%S"),
+         DateTimeLocal = DateTimeLocal %>% as.POSIXct(format = "%Y-%m-%d %H:%M:%S"))
+test_imp <- read_csv("~/Desktop/Google_Analytics_Kaggle/input/imp/test_imp1.csv") %>% 
+  mutate(DateTimeSeattle = DateTimeSeattle %>% as.POSIXct(format = "%Y-%m-%d %H:%M:%S"),
+         DateTimeLocal = DateTimeLocal %>% as.POSIXct(format = "%Y-%m-%d %H:%M:%S"))
 ```
 
 # Explatory Data Analysis
@@ -145,7 +149,7 @@ train_imp %>%
 
 - `visitId`:
     - システム側の id, visitStartTimeが同じであることから推測
-    - `visitId`と`visitStartTime`のuniqueな個数が一致しない (dif 856個) -> user 側の time zone 使われている??
+    - `visitId`と`DateTimeSeattle`のuniqueな個数が一致しない (dif 856個) -> user 側の time zone 使われている??
     - dateと比べて情報ないので不要??
 
 ```{r cache=TRUE}
@@ -161,7 +165,7 @@ tmp %>%
 
 train_imp %>>%
   (~ distinct(.,visitId) %>% NROW %>% print) %>% 
-  distinct(visitStartTime) %>% NROW
+  distinct(DateTimeSeattle) %>% NROW
 ```
 
 - `fullVisitorId` & `visitId` : 
@@ -210,11 +214,13 @@ train_imp %>%
 
 ### day & target
 
+- Seattle Time
+
 ```{r fig.width=10, fig.height=10, cache=TRUE}
 ## daily visit in train data
 g1 <- 
   train_imp %>%
-  mutate(date = visitStartTime %>% date) %>% 
+  mutate(date = DateTimeSeattle %>% date) %>% 
   group_by(date) %>% 
   summarise(day_count = n()) %>%
   ungroup() %>% 
@@ -226,11 +232,11 @@ g1 <-
     y='Visits number',
     title='Daily visits in train data'
   ) +
-  scale_x_date(labels = date_format("%Y-%m-%d"))
+  scale_x_date(labels = date_format("%Y-%m"))
 ## daily visit in test data
 g2 <- 
   test_imp %>%
-  mutate(date = visitStartTime %>% date) %>% 
+  mutate(date = DateTimeSeattle %>% date) %>% 
   group_by(date) %>% 
   summarise(day_count = n()) %>%
   ungroup() %>% 
@@ -242,11 +248,11 @@ g2 <-
     y='Visits number',
     title='Daily visits in test data'
   ) +
-  scale_x_date(labels = date_format("%Y-%m-%d"))
+  scale_x_date(labels = date_format("%Y-%m"))
 ## log(tatalRevenue) in train data
 g3 <-
   train_imp %>%
-  mutate(date = visitStartTime %>% date) %>% 
+  mutate(date = DateTimeSeattle %>% date) %>% 
   group_by(date) %>% 
   summarise(day_rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
@@ -258,19 +264,76 @@ g3 <-
     y='totalRevenue',
     title='Daily transaction revenue'
   ) +
-  scale_x_date(labels = date_format("%Y-%m-%d")) +
+  scale_x_date(labels = date_format("%Y-%m")) +
   scale_y_continuous(labels = scales::scientific)
 
 grid.arrange(g1, g2, g3, nrow=3)
 ```
 
-### hour & target
+- Local Time
 
 ```{r fig.width=10, fig.height=10, cache=TRUE}
 ## daily visit in train data
 g1 <- 
   train_imp %>%
-  mutate(hour = visitStartTime %>% hour) %>% 
+  mutate(date = DateTimeLocal %>% date) %>% 
+  group_by(date) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=date, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='',
+    y='Visits number',
+    title='Daily visits in train data'
+  ) +
+  scale_x_date(labels = date_format("%Y-%m"))
+## daily visit in test data
+g2 <- 
+  test_imp %>%
+  mutate(date = DateTimeLocal %>% date) %>% 
+  group_by(date) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=date, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='',
+    y='Visits number',
+    title='Daily visits in test data'
+  ) +
+  scale_x_date(labels = date_format("%Y-%m"))
+## log(tatalRevenue) in train data
+g3 <-
+  train_imp %>%
+  mutate(date = DateTimeLocal %>% date) %>% 
+  group_by(date) %>% 
+  summarise(day_rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=date, y=day_rev)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='',
+    y='totalRevenue',
+    title='Daily transaction revenue'
+  ) +
+  scale_x_date(labels = date_format("%Y-%m")) +
+  scale_y_continuous(labels = scales::scientific)
+
+grid.arrange(g1, g2, g3, nrow=3)
+```
+### hour & target
+
+- Seattle Time
+
+```{r fig.width=10, fig.height=10, cache=TRUE}
+## daily visit in train data
+g1 <- 
+  train_imp %>%
+  mutate(hour = DateTimeSeattle %>% hour) %>% 
   group_by(hour) %>% 
   summarise(day_count = n()) %>%
   ungroup() %>% 
@@ -286,7 +349,7 @@ g1 <-
 ## daily visit in test data
 g2 <- 
   test_imp %>%
-  mutate(hour = visitStartTime %>% hour) %>% 
+  mutate(hour = DateTimeSeattle %>% hour) %>% 
   group_by(hour) %>% 
   summarise(day_count = n()) %>%
   ungroup() %>% 
@@ -302,7 +365,62 @@ g2 <-
 ## log(tatalRevenue) in train data
 g3 <-
   train_imp %>% 
-  mutate(hour = visitStartTime %>% hour) %>% 
+  mutate(hour = DateTimeSeattle %>% hour) %>% 
+  group_by(hour) %>% 
+  summarise(day_rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=day_rev)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='Hour of day',
+    y='totalRevenue',
+    title='Transaction revenue by hour of day'
+  ) +
+  scale_y_continuous(labels = scales::scientific)
+
+grid.arrange(g1, g2, g3, nrow=3)
+```
+
+- Local Time
+
+```{r fig.width=10, fig.height=10, cache=TRUE}
+## daily visit in train data
+g1 <- 
+  train_imp %>%
+  mutate(hour = DateTimeLocal %>% hour) %>% 
+  group_by(hour) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='Hour of day',
+    y='Visits number',
+    title='visits number in train data by hour of day'
+  )
+
+## daily visit in test data
+g2 <- 
+  test_imp %>%
+  mutate(hour = DateTimeLocal %>% hour) %>% 
+  group_by(hour) %>% 
+  summarise(day_count = n()) %>%
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=day_count)) + 
+  geom_line(color='steelblue') +
+  geom_smooth(color='orange', method = 'loess', fomula = 'y ~ x') + 
+  labs(
+    x='Hour of day',
+    y='Visits number',
+    title='visits number in test data by hour of day'
+  ) 
+
+## log(tatalRevenue) in train data
+g3 <-
+  train_imp %>% 
+  mutate(hour = DateTimeLocal %>% hour) %>% 
   group_by(hour) %>% 
   summarise(day_rev = sum(transactionRevenue)) %>% 
   ungroup() %>% 
