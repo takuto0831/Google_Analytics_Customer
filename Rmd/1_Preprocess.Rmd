@@ -96,6 +96,7 @@ test_flat <- ReadJsonFile(test_raw, json_vars = json_vars)
 - change character type and logical type to numeric type
 - Replace NA with zero on target values
 - Convert Unix time stamp to Date on `visitStartTime`
+- Determine the local time on `visitStartTime`
 
 ## Remove columns for which information can not be obtained
 
@@ -144,16 +145,13 @@ train_flat <-
 ## Convert Unix time stamp to Date on `visitStartTime`
 
 - `date` is unnecessary because it is duplicated
-- POSIXct型は timezoneを指定する必要があるのでcharcter型にして, 読み込む時に戻す
 
 ```{r}
 train_flat <- train_flat %>% 
   mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>% 
-  mutate(DateTimeSeattle = DateTimeSeattle %>% as.character) %>% 
   select(-date)
 test_flat <- test_flat %>% 
   mutate(DateTimeSeattle = as.POSIXct(visitStartTime, origin='1970-01-01', tz = "US/Pacific")) %>%   
-  mutate(DateTimeSeattle = DateTimeSeattle %>% as.character) %>% 
   select(-date)
 ```
 
@@ -183,7 +181,7 @@ train_flat <-
              continent == "Asia" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Asia/Bangkok"),
              continent == "Europe" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Europe/London"),
              continent == "Oceania" ~ as.POSIXct(visitStartTime, origin='1970-01-01', tz = "Australia/Sydney"),
-             continent == "(not set)" ~ DateTimeSeattle
+             TRUE ~ DateTimeSeattle
            )
          ) %>% 
   mutate(DateTimeLocal = # country
@@ -251,7 +249,8 @@ train_flat <-
              TRUE ~ DateTimeLocal
            )
   ) %>% 
-  mutate(DateTimeLocal = DateTimeLocal %>% as.character) %>% 
+  mutate(DateTimeLocal = DateTimeLocal %>% as.character,
+         DateTimeSeattle = DateTimeSeattle %>% as.character) %>% 
   select(-visitStartTime)
 
 test_flat <- 
@@ -331,13 +330,14 @@ test_flat <-
              TRUE ~ DateTimeLocal
            )
   ) %>% 
-  mutate(DateTimeLocal = DateTimeLocal %>% as.character) %>% 
+  mutate(DateTimeLocal = DateTimeLocal %>% as.character,
+         DateTimeSeattle = DateTimeSeattle %>% as.character) %>% 
   select(-visitStartTime)
 ```
 
 # Export
 
-- 2018/ 9 /23
+- 2018/ 9 /24
 
 ```{r}
 write_csv(train_flat,"~/Desktop/Google_Analytics_Kaggle/input/imp/train_imp1.csv")
