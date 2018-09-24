@@ -75,6 +75,7 @@ Show process simply
 
 - raw: raw data
 - imp: imputed data
+    - {train|test}_imp1.csv: Preprocessed data by 1_Preprocess.Rmd 
 
 # Layered Directory
 
