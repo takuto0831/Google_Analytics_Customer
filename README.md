@@ -64,6 +64,7 @@ Show process simply
     - change character type and logical type to numeric type
     - Replace NA with zero on target values
     - Convert Unix time stamp to Date on `visitStartTime`
+    - Determine the local time on `visitStartTime`
 - 2_EDA.Rmd (now begin ...)
 
 ## data
