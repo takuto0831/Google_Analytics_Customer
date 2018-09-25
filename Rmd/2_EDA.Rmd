@@ -583,12 +583,14 @@ grid.arrange(g1, g2, ncol=2)
 ### geoNetwork & target
 
 - `continent`: 6種類
-- `subContinent`
-- `country`
-- `region`
-- `metro`
-- `city`
-- `networkDomain`
+- `subContinent`: 上位10種類
+- `country`: 上位10種類
+- `region`: 上位10種類
+- `metro`: 上位10種類
+- `city`: 上位10種類
+- `networkDomain`: 上位10種類
+
+#### continent 
 
 - 比率でみると, Africaが強い, Europeはアクセス数の割に購入金額が少ない
 
@@ -602,7 +604,7 @@ g1 <-
   ggplot(aes(x=reorder(continent, -count), y=count)) +
   geom_bar(stat='identity', fill='steelblue') +
   labs(x='',
-       y= 'number of continent',
+       y= 'Access number',
        title='Distribution of continent') +  
   geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
   # scale_y_continuous(labels = scales::scientific) +
@@ -620,6 +622,222 @@ g2 <-
        y='totalRevenue',
        title='Distribution of revenue by continent') +
   geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=8) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+#### sub continent
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(subContinent) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(10, count) %>% 
+  ggplot(aes(x=reorder(subContinent, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'Access number',
+       title='Distribution of Sub continent') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(subContinent) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(10, rev) %>% 
+  ggplot(aes(x=reorder(subContinent, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='subcontinent',
+       y='totalRevenue',
+       title='Distribution of revenue by Sub continent') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=6) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+#### country
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(country) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(10, count) %>% 
+  ggplot(aes(x=reorder(country, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'Access number',
+       title='Distribution of country') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(country) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(10, rev) %>% 
+  ggplot(aes(x=reorder(country, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='country',
+       y='totalRevenue',
+       title='Distribution of revenue by country') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=6) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+#### region
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(region) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(10, count) %>% 
+  ggplot(aes(x=reorder(region, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'Access number',
+       title='Distribution of region') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(region) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(10, rev) %>% 
+  ggplot(aes(x=reorder(region, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='region',
+       y='totalRevenue',
+       title='Distribution of revenue by region') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=6) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+#### metro 
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(metro) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(10, count) %>% 
+  ggplot(aes(x=reorder(metro, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'Access number',
+       title='Distribution of metro') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(metro) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(10, rev) %>% 
+  ggplot(aes(x=reorder(metro, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='metro',
+       y='totalRevenue',
+       title='Distribution of revenue by metro') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=6) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+#### city
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(city) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(10, count) %>% 
+  ggplot(aes(x=reorder(city, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'Access number',
+       title='Distribution of city') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(city) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(10, rev) %>% 
+  ggplot(aes(x=reorder(city, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='city',
+       y='totalRevenue',
+       title='Distribution of revenue by city') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=6) +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(g1, g2, nrow=2)
+```
+
+#### networkDomain
+
+```{r fig.width=20, fig.height=20}
+g1 <-
+  train_imp %>% 
+  group_by(networkDomain) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>% 
+  top_n(10, count) %>% 
+  ggplot(aes(x=reorder(networkDomain, -count), y=count)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='',
+       y= 'Access number',
+       title='Distribution of networkDomain') +  
+  geom_text(aes(label=count), position = position_stack(vjust = 0.5),size=8) +
+  # scale_y_continuous(labels = scales::scientific) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+g2 <-
+  train_imp %>% 
+  group_by(networkDomain) %>% 
+  summarise(rev = sum(transactionRevenue)) %>% 
+  ungroup() %>% 
+  top_n(10, rev) %>% 
+  ggplot(aes(x=reorder(networkDomain, -rev), y=rev)) +
+  geom_bar(stat='identity', fill='steelblue') +
+  labs(x='networkDomain',
+       y='totalRevenue',
+       title='Distribution of revenue by networkDomain') +
+  geom_text(aes(label=format(rev,big.mark=",",scientific=FALSE)), position = position_stack(vjust = 0.5),size=6) +
   scale_y_continuous(labels = scales::scientific) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 
