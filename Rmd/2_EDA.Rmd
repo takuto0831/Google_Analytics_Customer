@@ -54,6 +54,9 @@ library(lubridate)
 library(pipeR)
 library(scales)
 library(gridExtra)
+library(ggExtra)
+library(countrycode)
+library(highcharter)
 ```
 
 ## Load funciton
@@ -843,3 +846,47 @@ g2 <-
 
 grid.arrange(g1, g2, nrow=2)
 ```
+
+### geo plot
+
+```{r}
+tmp <- train_imp %>% 
+  group_by(country) %>% 
+  summarise(rev = sum(transactionRevenue)/ 10^6) %>% 
+  ungroup() %>% 
+  mutate(iso3 = countrycode(country,origin='country.name', destination='iso3c'))
+  
+  
+highchart() %>% 
+  hc_add_series_map(worldgeojson,tmp, value = 'rev', joinBy = 'iso3') %>%
+    hc_title(text = 'Total transaction revenue by country (divided by 10^6)') %>%
+    hc_subtitle(text = "August 2016 to August 2017") %>%
+    hc_tooltip(useHTML = TRUE, headerFormat = "",pointFormat = "{point.country}: ${point.rev:.0f}")
+```
+
+### Total Features
+
+```{r fig.width=20, fig.height=20}
+g1 <- ggplot(train_imp, aes(x=log(pageviews), y=log1p(transactionRevenue))) + 
+  geom_point(color='steelblue') +
+  geom_smooth(method='lm', color='orange') + 
+  labs(
+    y='Transaction revenue (log)',
+    title='Pageviews vs transaction revenue',
+    subtitle='visit-level')
+  
+
+g2 <- ggplot(train_imp, aes(x=log(hits), y=log1p(transactionRevenue))) + 
+  geom_point(color='steelblue') +
+  geom_smooth(method='lm', color='orange') + 
+  labs(
+    y='Transaction revenue (log)',
+    title='Hits vs transaction revenue',
+    subtitle='visit-level')
+
+m1 <- ggMarginal(g1, type='histogram', fill='steelblue')
+m2 <- ggMarginal(g2, type='histogram', fill='steelblue')
+
+grid.arrange(m1, m2, nrow = 1, ncol = 2)
+```
+
