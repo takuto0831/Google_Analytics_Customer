@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+input
+Rmd/*.html
+Rmd/0_EDA_cache
+Rmd/2_EDA_cache
+Rmd/2_EDA_files
